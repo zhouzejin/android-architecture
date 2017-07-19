@@ -45,6 +45,8 @@ public class AddEditTaskFragment extends Fragment {
 
     private AddtaskFragBinding mViewDataBinding;
 
+    private Observable.OnPropertyChangedCallback mSnackbarCallback;
+
     public static AddEditTaskFragment newInstance() {
         return new AddEditTaskFragment();
     }
@@ -95,14 +97,22 @@ public class AddEditTaskFragment extends Fragment {
         return mViewDataBinding.getRoot();
     }
 
+    @Override
+    public void onDestroy() {
+        if (mSnackbarCallback != null) {
+            mViewModel.snackbarText.removeOnPropertyChangedCallback(mSnackbarCallback);
+        }
+        super.onDestroy();
+    }
+
     private void setupSnackbar() {
-        mViewModel.snackbarText.addOnPropertyChangedCallback(
-                new Observable.OnPropertyChangedCallback() {
+        mSnackbarCallback = new Observable.OnPropertyChangedCallback() {
             @Override
             public void onPropertyChanged(Observable observable, int i) {
                 SnackbarUtils.showSnackbar(getView(), mViewModel.getSnackbarText());
             }
-        });
+        };
+        mViewModel.snackbarText.addOnPropertyChangedCallback(mSnackbarCallback);
     }
 
     private void setupFab() {
@@ -112,7 +122,7 @@ public class AddEditTaskFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mViewModel.saveTask(mViewModel.title.get(), mViewModel.description.get());
+                mViewModel.saveTask();
             }
         });
     }
